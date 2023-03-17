@@ -1,19 +1,23 @@
 #!/usr/bin/python3
-# Displays all cities of a given state from the
-# states table of the database hbtn_0e_4_usa.
-# Safe from SQL injections.
-# Usage: ./5-filter_cities.py <mysql username> \
-#                             <mysql password> \
-#                             <database name> \
-#                             <state name searched>
-import sys
-import MySQLdb
+"""takes in the name of a state as an argument and
+lists all cities of that state,
+using the database hbtn_0e_4_usa"""
 
-if __name__ == "__main__":
-    db = MySQLdb.connect(user=sys.argv[1], passwd=sys.argv[2], db=sys.argv[3])
-    c = db.cursor()
-    c.execute("SELECT * FROM `cities` as `c` \
-                INNER JOIN `states` as `s` \
-                   ON `c`.`state_id` = `s`.`id` \
-                ORDER BY `c`.`id`")
-    print(", ".join([ct[2] for ct in c.fetchall() if ct[4] == sys.argv[4]]))
+if __name__ == '__main__':
+
+    import MySQLdb
+    import sys
+
+    db = MySQLdb.connect(
+            user=sys.argv[1], passwd=sys.argv[2], db=sys.argv[3])
+
+    cur = db.cursor()
+    cur.execute("SELECT cities.name\
+                FROM cities LEFT JOIN states\
+                ON states.id = cities.state_id\
+                WHERE states.name = %s\
+                ORDER BY cities.id ASC", (sys.argv[4],))
+    data = cur.fetchall()
+    print(", ".join([row[0] for row in data]))
+    cur.close()
+    db.close()
